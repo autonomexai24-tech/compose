@@ -120,10 +120,10 @@ services:
       GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: ${MAILER_URLPATHS_EMAIL_CHANGE}
       GOTRUE_EXTERNAL_PHONE_ENABLED: ${ENABLE_PHONE_SIGNUP}
       GOTRUE_SMS_AUTOCONFIRM: ${ENABLE_PHONE_AUTOCONFIRM}
-      GOTRUE_EXTERNAL_GOOGLE_ENABLED: "true"
-      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: "259051425445-693ef3dqghv75h44mb80kmnab3p0e7i6.apps.googleusercontent.com"
-      GOTRUE_EXTERNAL_GOOGLE_SECRET: "G0CSPX-ywuTUC1QQjP_o0Z9HuVJ7DL5Ug58"
-      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: "https://dhanushpackaging-supabase.ocznup.easypanel.host/auth/v1/callback"
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: 'true'
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: '259051425445-693ef3dqghv75h44mb80kmnab3p0e7i6.apps.googleusercontent.com'
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: 'G0CSPX-ywuTUC1QQjP_o0Z9HuVJ7DL5Ug58'
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: 'https://dhanushpackaging-supabase.ocznup.easypanel.host/auth/v1/callback'
 
   rest:
     image: postgrest/postgrest:v14.1
