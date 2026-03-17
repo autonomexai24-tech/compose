@@ -1,5 +1,4 @@
-# Hardwired Supabase Blueprint for Snap Order AI
-name: supabase
+version: '3.8'
 services:
   studio:
     image: supabase/studio:2025.12.17-sha-43f4f7f
@@ -8,17 +7,9 @@ services:
       STUDIO_PG_META_URL: http://meta:8080
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       SUPABASE_URL: http://kong:8000
-      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       AUTH_JWT_SECRET: ${JWT_SECRET}
-
-  kong:
-    image: kong:2.8.1
-    restart: unless-stopped
-    volumes:
-      - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
-    entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
 
   auth:
     image: supabase/gotrue:v2.184.0
@@ -26,11 +17,11 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       GOTRUE_SITE_URL: ${SITE_URL}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
       GOTRUE_JWT_SECRET: ${JWT_SECRET}
-      # GOOGLE HARDWIRED SECTION
+      # --- HARDWIRED GOOGLE SECTION ---
       GOTRUE_EXTERNAL_GOOGLE_ENABLED: 'true'
       GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: '259051425445-693ef3dqghv75h44mb80kmnab3p0e7i6.apps.googleusercontent.com'
       GOTRUE_EXTERNAL_GOOGLE_SECRET: 'G0CSPX-ywuTUC1QQjP_o0Z9HuVJ7DL5Ug58'
@@ -42,23 +33,26 @@ services:
     volumes:
       - ./volumes/db/data:/var/lib/postgresql/data:z
       - db-config:/etc/postgresql-custom
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
 
-  vector:
-    image: timberio/vector:0.28.1-alpine
+  kong:
+    image: kong:2.8.1
     restart: unless-stopped
     volumes:
-      - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
-      - /var/run/docker.sock:/var/run/docker.sock:ro,z
+      - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
+    entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
 
   rest:
     image: postgrest/postgrest:v14.1
+    restart: unless-stopped
     environment:
-      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
 
   realtime:
     image: supabase/realtime:v2.68.0
     environment:
-      DB_HOST: ${POSTGRES_HOST}
+      DB_HOST: db
       DB_PASSWORD: ${POSTGRES_PASSWORD}
 
   storage:
@@ -66,7 +60,13 @@ services:
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     environment:
-      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+
+  vector:
+    image: timberio/vector:0.28.1-alpine
+    volumes:
+      - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
+      - /var/run/docker.sock:/var/run/docker.sock:ro,z
 
   meta:
     image: supabase/postgres-meta:v0.95.1
