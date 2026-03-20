@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   studio:
     image: supabase/studio:2025.12.17-sha-43f4f7f
@@ -7,6 +8,7 @@ services:
       STUDIO_PG_META_URL: http://meta:8080
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       AUTH_JWT_SECRET: ${JWT_SECRET}
@@ -51,12 +53,14 @@ services:
 
   realtime:
     image: supabase/realtime:v2.68.0
+    restart: unless-stopped
     environment:
       DB_HOST: db
       DB_PASSWORD: ${POSTGRES_PASSWORD}
 
   storage:
     image: supabase/storage-api:v1.33.0
+    restart: unless-stopped
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     environment:
@@ -64,21 +68,29 @@ services:
 
   vector:
     image: timberio/vector:0.28.1-alpine
+    restart: unless-stopped
     volumes:
       - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
       - /var/run/docker.sock:/var/run/docker.sock:ro,z
 
   meta:
     image: supabase/postgres-meta:v0.95.1
+    restart: unless-stopped
+    environment:
+      PG_META_DB_HOST: db
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
 
   functions:
     image: supabase/edge-runtime:v1.69.28
+    restart: unless-stopped
 
   analytics:
     image: supabase/logflare:1.27.0
+    restart: unless-stopped
 
   supavisor:
     image: supabase/supavisor:2.7.4
+    restart: unless-stopped
 
 volumes:
   db-config:
